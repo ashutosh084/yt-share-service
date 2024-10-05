@@ -1,6 +1,7 @@
 # models.py
-from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy import Column, Integer, String, create_engine, DateTime
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
 
 DATABASE_URL = "sqlite:///yt.db"
@@ -15,3 +16,26 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
+
+class YTList(Base):
+    __tablename__ = "yt_list"
+    id = Column(Integer, primary_key=True, index=True)
+    list_name = Column(String, unique=False, index=True)
+    channel_id = Column(String, unique=False, index=False)
+    channel_name = Column(String, unique=False, index=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+# User -> list -> 5 channel -> redis
+
+# 500 job
+# url share
+# redis/server expire
+
+# channel_id = comma separated
+# redis (yt-api: channel_id)
+
+
+# redis -> channels -> sets channel id and other metadata
+
+# if expire
