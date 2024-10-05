@@ -6,12 +6,15 @@ from jose import JWTError, jwt
 from interfaces import RegisterRequest
 import bcrypt
 from fetch_channels.main import fetch_channels
+import aioredis
+from cache_helper import get_from_cache, save_to_cache
 
 SECRET_KEY = "your-secret-key"
 ALGORITHM = "HS256"
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+redis = aioredis.from_url("redis://localhost")
 
 # pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
