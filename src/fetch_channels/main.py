@@ -20,6 +20,12 @@ def prepare_response(channels):
                 "navigationEndpoint": channel.get("channelRenderer", {}).get("navigationEndpoint", {}).get("browseEndpoint", {}).get("canonicalBaseUrl", {})} for channel in channels]
     except Exception as e:
         traceback.print_exc()
+        
+def return_first_channel(channels):
+    try:
+        return channels[0]
+    except Exception as e:
+        traceback.print_exc()
 
 def get_channels(url, q):
 
@@ -40,6 +46,15 @@ def fetch_channels(q: str):
         url = f"https://www.youtube.com/youtubei/v1/search?prettyPrint=false"
         channels = get_channels(url, q)
         return prepare_response(filter_channels(channels))
+    except Exception as e:
+        traceback.print_exc()
+        return e
+    
+def fetch_channel(channelNavigationEndpoint: str):
+    try:
+        url = f"https://www.youtube.com/youtubei/v1/search?prettyPrint=false"
+        channels = get_channels(url, channelNavigationEndpoint)
+        return return_first_channel(prepare_response(filter_channels(channels)))
     except Exception as e:
         traceback.print_exc()
         return e
