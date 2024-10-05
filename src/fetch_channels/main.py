@@ -15,6 +15,7 @@ def filter_channels(channels):
 def prepare_response(channels):
     try:
         return [{"channelId": channel.get("channelRenderer", {}).get("channelId"), 
+                 "name": channel.get("channelRenderer", {}).get("shortBylineText", {}).get("runs", [{}])[0].get("text"),
                 "thumbnail": channel.get("channelRenderer", {}).get("thumbnail", {}).get("thumbnails", [{}])[0].get("url"),
                 "navigationEndpoint": channel.get("channelRenderer", {}).get("navigationEndpoint", {}).get("browseEndpoint", {}).get("canonicalBaseUrl", {})} for channel in channels]
     except Exception as e:
