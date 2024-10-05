@@ -5,7 +5,7 @@ from models import Base, User, SessionLocal, engine
 from jose import JWTError, jwt
 from interfaces import RegisterRequest
 import bcrypt
-
+from fetch_channels.main import fetch_channels
 
 SECRET_KEY = "your-secret-key"
 ALGORITHM = "HS256"
@@ -74,3 +74,7 @@ def read_protected_data(current_user: User = Depends(get_current_user)):
 def logout(response: Response):
     response.delete_cookie("access_token")
     return {"msg": "Logged out"}
+
+@app.get("/fetchChannels")
+def fc(q: str  = ""):
+    return fetch_channels(q)
