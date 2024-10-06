@@ -1,5 +1,6 @@
 # main.py
 from fastapi import FastAPI, Depends, HTTPException, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 from models import Base, User, SessionLocal, engine,YTList
@@ -19,6 +20,13 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 redis = aioredis.from_url("redis://localhost")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -128,3 +136,11 @@ async def ytlist(request: YTListRequest, db: Session = Depends(get_db)):
     except Exception:
         traceback.print_exc()
     return ytlist
+
+def fc(q: str  = "", current_user: User = Depends(get_current_user)):
+    print(f"Hello, {current_user.email}")
+    return fetch_channels(q)
+
+@app.get("/authcheck")
+def user_auth_status(current_user: User = Depends(get_current_user)):
+    return {"msg": f"Hello, {current_user.email}"}
