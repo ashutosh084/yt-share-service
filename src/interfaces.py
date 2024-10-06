@@ -8,11 +8,10 @@ class RegisterRequest(BaseModel):
     
 class channel(BaseModel):
     id: str
-    name: str
-    url: str
-    thumbnail: str
+    name: str = None
+    url: str  = None
+    thumbnail: str = None
     
 class YTListRequest(BaseModel):
-    name: str
-    list: List[channel]
-    
+    name: str = None
+    list: List[channel] = None

@@ -84,8 +84,7 @@ def fc(q: str  = ""):
     return fetch_channels(q)
 
 @app.post("/ytList")
-def ytlist(request: YTListRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    
+def ytlist(request: YTListRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)): 
     ytList = YTList(
         list_name=request.name,
         channel_id=','.join([channel.id for channel in request.list]),
@@ -94,11 +93,15 @@ def ytlist(request: YTListRequest, db: Session = Depends(get_db), current_user: 
         created_by=current_user.id,
         updated_at=func.now()
     )
-
     db.add(ytList)
-    db.commit()
-    db.refresh(ytList)
-    
+    try:
+        db.commit()
+        for channel in request.list:
+            save_to_cache(channel.id, channel)
+    except Exception:
+        db.rollback()
+        raise
+    db.refresh(ytList) 
     return ytList.id
 
 
@@ -107,4 +110,12 @@ def ytlist(request: YTListRequest, db: Session = Depends(get_db)):
     query = db.query(YTList)
     if request.name:
         query = query.filter(YTList.list_name == request.name)
-    return query.all()
+    ytlist = query.all()
+    for yt in ytlist:
+        channel_ids = yt.channel_id.split(',')
+        thumbnails = []
+        for channel_id in channel_ids:
+            channel = get_from_cache(channel_id)
+            if channel:
+                thumbnails.append(channel.thumbnail)
+        yt.channel_thumbnail = ','.join(thumbnails)
