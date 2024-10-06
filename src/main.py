@@ -11,6 +11,7 @@ import aioredis
 import json
 from types import SimpleNamespace
 from cache_helper import get_from_cache, save_to_cache
+import traceback
 
 SECRET_KEY = "your-secret-key"
 ALGORITHM = "HS256"
