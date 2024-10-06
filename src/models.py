@@ -1,5 +1,5 @@
 # models.py
-from sqlalchemy import Column, Integer, String, create_engine, DateTime
+from sqlalchemy import Column, Integer, String, create_engine, DateTime,ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
@@ -25,6 +25,7 @@ class YTList(Base):
     channel_name = Column(String, unique=False, index=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    created_by = Column(Integer, ForeignKey('users.id'))
 
 # User -> list -> 5 channel -> redis
 

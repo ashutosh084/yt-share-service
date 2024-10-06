@@ -1,9 +1,10 @@
 # main.py
 from fastapi import FastAPI, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
-from models import Base, User, SessionLocal, engine
+from sqlalchemy.sql import func
+from models import Base, User, SessionLocal, engine,YTList
 from jose import JWTError, jwt
-from interfaces import RegisterRequest
+from interfaces import RegisterRequest,YTListRequest
 import bcrypt
 from fetch_channels.main import fetch_channels
 import aioredis
@@ -81,3 +82,29 @@ def logout(response: Response):
 @app.get("/fetchChannels")
 def fc(q: str  = ""):
     return fetch_channels(q)
+
+@app.post("/ytList")
+def ytlist(request: YTListRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    
+    ytList = YTList(
+        list_name=request.name,
+        channel_id=','.join([channel.id for channel in request.list]),
+        channel_name=','.join([channel.name for channel in request.list]),
+        created_at=func.now(),
+        created_by=current_user.id,
+        updated_at=func.now()
+    )
+
+    db.add(ytList)
+    db.commit()
+    db.refresh(ytList)
+    
+    return ytList.id
+
+
+@app.get("/ytList")
+def ytlist(request: YTListRequest, db: Session = Depends(get_db)):
+    query = db.query(YTList)
+    if request.name:
+        query = query.filter(YTList.list_name == request.name)
+    return query.all()
