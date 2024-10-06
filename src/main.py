@@ -8,6 +8,8 @@ from interfaces import RegisterRequest,YTListRequest
 import bcrypt
 from fetch_channels.main import fetch_channels
 import aioredis
+import json
+from types import SimpleNamespace
 from cache_helper import get_from_cache, save_to_cache
 
 SECRET_KEY = "your-secret-key"
@@ -84,7 +86,7 @@ def fc(q: str  = ""):
     return fetch_channels(q)
 
 @app.post("/ytList")
-def ytlist(request: YTListRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)): 
+async def ytlist(request: YTListRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)): 
     ytList = YTList(
         list_name=request.name,
         channel_id=','.join([channel.id for channel in request.list]),
@@ -94,10 +96,10 @@ def ytlist(request: YTListRequest, db: Session = Depends(get_db), current_user: 
         updated_at=func.now()
     )
     db.add(ytList)
+    db.commit()
     try:
-        db.commit()
         for channel in request.list:
-            save_to_cache(channel.id, channel)
+            await save_to_cache(channel.id, json.dumps(channel, default=lambda x: x.__dict__))
     except Exception:
         db.rollback()
         raise
@@ -106,16 +108,22 @@ def ytlist(request: YTListRequest, db: Session = Depends(get_db), current_user: 
 
 
 @app.get("/ytList")
-def ytlist(request: YTListRequest, db: Session = Depends(get_db)):
+async def ytlist(request: YTListRequest, db: Session = Depends(get_db)):
     query = db.query(YTList)
     if request.name:
-        query = query.filter(YTList.list_name == request.name)
+        query = query.filter(YTList.list_name.like(f"%{request.name}%"))
     ytlist = query.all()
-    for yt in ytlist:
-        channel_ids = yt.channel_id.split(',')
-        thumbnails = []
-        for channel_id in channel_ids:
-            channel = get_from_cache(channel_id)
-            if channel:
-                thumbnails.append(channel.thumbnail)
-        yt.channel_thumbnail = ','.join(thumbnails)
+    try:
+        for yt in ytlist:
+            channel_ids = yt.channel_id.split(',')
+            thumbnails = []
+            for channel_id in channel_ids:
+                channel_str = await get_from_cache(channel_id)
+                if channel_str:
+                    channel = json.loads(channel_str, object_hook=lambda d: SimpleNamespace(**d))
+                if channel:
+                    thumbnails.append(channel.thumbnail)
+            yt.list_thumbnail = ','.join(thumbnails)
+    except Exception:
+        traceback.print_exc()
+    return ytlist
