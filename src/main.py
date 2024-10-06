@@ -19,6 +19,7 @@ ALGORITHM = "HS256"
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
 redis = aioredis.from_url("redis://localhost")
 app.add_middleware(
     CORSMiddleware,
@@ -27,8 +28,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_db():
     db = SessionLocal()
