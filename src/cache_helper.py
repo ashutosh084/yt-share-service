@@ -1,7 +1,6 @@
 import aioredis
 import os
 
-
 def get_cache():
     if os.getenv("REDIS_URL"):
         redis = aioredis.from_url(os.getenv("REDIS_URL"))
@@ -9,7 +8,7 @@ def get_cache():
         redis = aioredis.from_url("redis://localhost")
     return redis
 
-cache = get_cache()
+cache = aioredis.from_url("redis://localhost")
 
 async def get_from_cache(key):
     return await cache.get(key)
