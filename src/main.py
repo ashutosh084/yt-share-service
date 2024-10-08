@@ -3,7 +3,8 @@ from fastapi import FastAPI, Depends, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
-from models import Base, User, SessionLocal, engine,YTList
+from dotenv import load_dotenv
+from models import Base, User, SessionLocal, engine, YTList
 from jose import JWTError, jwt
 from interfaces import RegisterRequest,YTListRequest
 import bcrypt
@@ -14,13 +15,16 @@ from types import SimpleNamespace
 from cache_helper import get_from_cache, save_to_cache
 import traceback
 
+
+load_dotenv()
+
 SECRET_KEY = "your-secret-key"
 ALGORITHM = "HS256"
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
 redis = aioredis.from_url("redis://localhost")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
